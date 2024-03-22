@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    image: docuseal/docuseal
+    restart: unless-stopped
+    volumes:
+      - app_data:/data
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/docuseal
+    networks:
+      proxy_apps:
+      default:
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    networks:
+      default:
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=docuseal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    labels:
+      ofelia.restart: "true"
+      ofelia.enabled: "true"
+      ofelia.job-exec.docusealdbbackup.schedule: "0 0 1 * * *"
+      ofelia.job-exec.docusealdbbackup.command: "sh -c 'pg_dumpall -U postgres -f /var/lib/postgresql/data/backup.sql'"
+
+volumes:
+  app_data:
+  db_data:
+
+networks:
+  proxy_apps:
+    name: proxy_apps
+    external: true
