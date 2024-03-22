@@ -11,7 +11,7 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/docuseal
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/docuseal
     networks:
       proxy_apps:
       default:
